@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import LogButton from "./log-button";
 
 export default async function PlantPage({
   params,
@@ -99,9 +100,7 @@ export default async function PlantPage({
                     Every {task.interval_days} days
                   </p>
                 </div>
-                <button className="bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium">
-                  Log
-                </button>
+                <LogButton plantId={plant.id} action={task.action} />
               </div>
             ))}
         </div>
