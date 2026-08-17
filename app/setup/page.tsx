@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -37,7 +38,7 @@ export default function SetupPage() {
 
     // Generate a UUID for the household
     const householdId = crypto.randomUUID();
-    const email = `household-test@bloomkeeper-app.com`;
+    const email = `household-${householdId}@bloomkeeper-app.com`;
 
     // Create the Supabase Auth account
     const { data: authData, error: authError } = await supabase.auth.signUp({
