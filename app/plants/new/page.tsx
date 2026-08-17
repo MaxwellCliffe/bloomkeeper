@@ -38,7 +38,7 @@ export default function NewPlantPage() {
   function updateInterval(action: string, value: number) {
     setCareTasks((prev) =>
       prev.map((t) =>
-        t.action === action ? { ...t, interval_days: value } : t,
+        t.action === action ? { ...t, interval_days: value as any } : t,
       ),
     );
   }
