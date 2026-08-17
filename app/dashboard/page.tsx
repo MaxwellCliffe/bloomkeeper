@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import SignOutButton from "./signout-button";
+import Link from "next/link";
+import PlantCard from "./plant-card";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -14,15 +16,57 @@ export default async function DashboardPage() {
 
   const { data: household } = await supabase
     .from("households")
-    .select("name")
+    .select("id, name")
     .single();
+
+  if (!household) {
+    redirect("/login");
+  }
+
+  const { data: plants } = await supabase
+    .from("plants")
+    .select(
+      `
+      id,
+      name,
+      species,
+      location,
+      photo_url,
+      plant_care_tasks (
+        id,
+        action,
+        interval_days,
+        is_enabled
+      )
+    `,
+    )
+    .eq("household_id", household.id)
+    .order("created_at", { ascending: false });
 
   return (
     <main className="min-h-screen p-6">
-      <div className="max-w-sm mx-auto space-y-4">
-        <h1 className="text-2xl font-bold">🌿 {household?.name}</h1>
-        <p className="text-gray-500">Welcome to your dashboard!</p>
-        <SignOutButton />
+      <div className="max-w-sm mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">🌿 {household.name}</h1>
+          <SignOutButton />
+        </div>
+
+        <Link
+          href="/plants/new"
+          className="block w-full bg-green-600 text-white rounded-lg px-4 py-3 font-medium text-center"
+        >
+          + Add a plant
+        </Link>
+
+        <div className="space-y-4">
+          {plants && plants.length > 0 ? (
+            plants.map((plant) => <PlantCard key={plant.id} plant={plant} />)
+          ) : (
+            <p className="text-center text-gray-400 py-8">
+              No plants yet — add your first one!
+            </p>
+          )}
+        </div>
       </div>
     </main>
   );
