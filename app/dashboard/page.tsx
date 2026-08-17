@@ -58,6 +58,13 @@ export default async function DashboardPage() {
           + Add a plant
         </Link>
 
+        <Link
+          href="/household"
+          className="block w-full border border-gray-300 text-gray-600 rounded-lg px-4 py-3 font-medium text-center"
+        >
+          Household settings
+        </Link>
+
         <div className="space-y-4">
           {plants && plants.length > 0 ? (
             plants.map((plant) => <PlantCard key={plant.id} plant={plant} />)
