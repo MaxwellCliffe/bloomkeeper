@@ -1,11 +1,15 @@
-import { supabase } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function Home() {
-  const { data, error } = await supabase.from("households").select("*");
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (error) {
-    return <div>Connection failed: {error.message}</div>;
+  if (user) {
+    redirect("/dashboard");
+  } else {
+    redirect("/login");
   }
-
-  return <div>Supabase connected! Households found: {data.length}</div>;
 }
