@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { useRouter } from "next/navigation";
 
 type LogButtonProps = {
   plantId: string;
@@ -12,6 +13,7 @@ export default function LogButton({ plantId, action }: LogButtonProps) {
   const [loading, setLoading] = useState(false);
   const [logged, setLogged] = useState(false);
   const supabase = createSupabaseBrowserClient();
+  const router = useRouter();
 
   function getProfileId() {
     const match = document.cookie
@@ -41,9 +43,9 @@ export default function LogButton({ plantId, action }: LogButtonProps) {
       setLoading(false);
       return;
     }
-
     setLogged(true);
     setLoading(false);
+    router.refresh();
 
     setTimeout(() => setLogged(false), 3000);
   }

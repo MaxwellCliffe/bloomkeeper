@@ -3,6 +3,15 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import LogButton from "./log-button";
 
+const ACTION_ICONS: Record<string, string> = {
+  water: "💧",
+  fertilize: "🧪",
+  repot: "🪴",
+  prune: "✂️",
+  mist: "🌫️",
+  rotate: "🔄",
+};
+
 export default async function PlantPage({
   params,
 }: {
@@ -43,14 +52,23 @@ export default async function PlantPage({
     redirect("/dashboard");
   }
 
-  const ACTION_ICONS: Record<string, string> = {
-    water: "💧",
-    fertilize: "🧪",
-    repot: "🪴",
-    prune: "✂️",
-    mist: "🌫️",
-    rotate: "🔄",
-  };
+  const { data: careLogs } = await supabase
+    .from("care_logs")
+    .select(
+      `
+      id,
+      action,
+      note,
+      logged_at,
+      profiles (
+        display_name,
+        avatar_color
+      )
+    `,
+    )
+    .eq("plant_id", id)
+    .order("logged_at", { ascending: false })
+    .limit(20);
 
   return (
     <main className="min-h-screen p-6">
@@ -103,6 +121,50 @@ export default async function PlantPage({
                 <LogButton plantId={plant.id} action={task.action} />
               </div>
             ))}
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="font-semibold text-lg">History</h2>
+          {careLogs && careLogs.length > 0 ? (
+            careLogs.map((log) => (
+              <div
+                key={log.id}
+                className="flex items-start gap-3 py-3 border-b last:border-0"
+              >
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                  style={{
+                    backgroundColor:
+                      (log.profiles as any)?.avatar_color || "#6366f1",
+                  }}
+                >
+                  {(log.profiles as any)?.display_name?.[0]?.toUpperCase()}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">
+                    {ACTION_ICONS[log.action] || "📝"} {log.action}
+                    {" · "}
+                    <span className="text-gray-500 font-normal">
+                      {(log.profiles as any)?.display_name}
+                    </span>
+                  </p>
+                  {log.note && (
+                    <p className="text-sm text-gray-500">{log.note}</p>
+                  )}
+                  <p className="text-xs text-gray-400">
+                    {new Date(log.logged_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-400 text-sm">No history yet.</p>
+          )}
         </div>
       </div>
     </main>
