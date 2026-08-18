@@ -27,21 +27,26 @@ export default async function DashboardPage() {
     .from("plants")
     .select(
       `
+    id,
+    name,
+    species,
+    location,
+    photo_url,
+    plant_care_tasks (
       id,
-      name,
-      species,
-      location,
-      photo_url,
-      plant_care_tasks (
-        id,
-        action,
-        interval_days,
-        is_enabled
-      )
-    `,
+      action,
+      interval_days,
+      is_enabled
+    )
+  `,
     )
     .eq("household_id", household.id)
     .order("created_at", { ascending: false });
+
+  const { data: careLogs } = await supabase
+    .from("care_logs")
+    .select("plant_id, action, logged_at")
+    .in("plant_id", plants?.map((p) => p.id) ?? []);
 
   return (
     <main className="min-h-screen p-6">
@@ -67,7 +72,15 @@ export default async function DashboardPage() {
 
         <div className="space-y-4">
           {plants && plants.length > 0 ? (
-            plants.map((plant) => <PlantCard key={plant.id} plant={plant} />)
+            plants.map((plant) => (
+              <PlantCard
+                key={plant.id}
+                plant={plant}
+                careLogs={
+                  careLogs?.filter((l) => l.plant_id === plant.id) ?? []
+                }
+              />
+            ))
           ) : (
             <p className="text-center text-gray-400 py-8">
               No plants yet — add your first one!
