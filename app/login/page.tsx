@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,28 +18,13 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Find household by trying to sign in
-    // We need the email - we'll fetch it via a lookup
-    const { data: household, error: lookupError } = await supabase
-      .from("households")
-      .select("id, name, auth_user_id")
-      .limit(1)
-      .single();
-
-    if (lookupError || !household) {
-      setError("No household found. Please set one up first.");
-      setLoading(false);
-      return;
-    }
-
-    const email = `household-test@bloomkeeper-app.com`;
     const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
     if (authError) {
-      setError("Incorrect password. Please try again.");
+      setError("Incorrect email or password. Please try again.");
       setLoading(false);
       return;
     }
@@ -51,10 +37,18 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">🌿 Bloomkeeper</h1>
-          <p className="text-gray-500">Enter your household password</p>
+          <p className="text-gray-500">Sign in to your household</p>
         </div>
 
         <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Household email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+
           <input
             type="password"
             placeholder="Household password"
@@ -68,7 +62,7 @@ export default function LoginPage() {
 
           <button
             onClick={handleLogin}
-            disabled={loading || !password}
+            disabled={loading || !email || !password}
             className="w-full bg-green-600 text-white rounded-lg px-4 py-3 font-medium disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}

@@ -15,6 +15,7 @@ export default function SetupPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
+  const [email, setEmail] = useState("");
 
   async function handleSetup() {
     setError("");
@@ -34,11 +35,15 @@ export default function SetupPage() {
       return;
     }
 
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
 
     // Generate a UUID for the household
     const householdId = crypto.randomUUID();
-    const email = `household-${householdId.replace(/-/g, "")}@bloomkeeper-app.com`;
 
     // Create the Supabase Auth account
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -96,7 +101,13 @@ export default function SetupPage() {
             onChange={(e) => setHouseholdName(e.target.value)}
             className="w-full border rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
           />
-
+          <input
+            type="email"
+            placeholder="Household email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
           <input
             type="text"
             placeholder="Your name (e.g. Mom, Jake)"
@@ -128,6 +139,7 @@ export default function SetupPage() {
             disabled={
               loading ||
               !householdName ||
+              !email ||
               !profileName ||
               !password ||
               !confirmPassword
