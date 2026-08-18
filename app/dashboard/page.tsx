@@ -47,7 +47,38 @@ export default async function DashboardPage() {
     .from("care_logs")
     .select("plant_id, action, logged_at")
     .in("plant_id", plants?.map((p) => p.id) ?? []);
+  const sortedPlants =
+    plants
+      ?.map((plant) => {
+        const plantLogs =
+          careLogs?.filter((l) => l.plant_id === plant.id) ?? [];
+        const maxUrgency = plant.plant_care_tasks
+          .filter((t) => t.is_enabled)
+          .reduce((max, task) => {
+            const lastLog = plantLogs
+              .filter((l) => l.action === task.action)
+              .sort(
+                (a, b) =>
+                  new Date(b.logged_at).getTime() -
+                  new Date(a.logged_at).getTime(),
+              )[0];
 
+            if (!lastLog) return Math.max(max, 2);
+
+            const daysSince =
+              (Date.now() - new Date(lastLog.logged_at).getTime()) /
+              (1000 * 60 * 60 * 24);
+            const urgency =
+              daysSince > task.interval_days
+                ? 2
+                : daysSince > task.interval_days * 0.8
+                  ? 1
+                  : 0;
+            return Math.max(max, urgency);
+          }, 0);
+        return { ...plant, maxUrgency };
+      })
+      .sort((a, b) => b.maxUrgency - a.maxUrgency) ?? [];
   return (
     <main className="min-h-screen p-6">
       <div className="max-w-sm mx-auto space-y-6">
@@ -71,8 +102,8 @@ export default async function DashboardPage() {
         </Link>
 
         <div className="space-y-4">
-          {plants && plants.length > 0 ? (
-            plants.map((plant) => (
+          {sortedPlants.length > 0 ? (
+            sortedPlants.map((plant) => (
               <PlantCard
                 key={plant.id}
                 plant={plant}
