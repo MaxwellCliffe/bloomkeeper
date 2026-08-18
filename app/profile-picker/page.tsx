@@ -7,23 +7,43 @@ import { useRouter } from "next/navigation";
 export default function ProfilePickerPage() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     async function loadProfiles() {
-      const { data: household } = await supabase
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: household, error: householdError } = await supabase
         .from("households")
         .select("id")
         .single();
 
-      if (!household) return;
+      if (householdError || !household) {
+        setError("Could not load household. Please sign in again.");
+        setLoading(false);
+        return;
+      }
 
-      const { data } = await supabase
+      const { data, error: profilesError } = await supabase
         .from("profiles")
         .select("id, display_name, avatar_color")
         .eq("household_id", household.id)
         .eq("is_active", true);
+
+      if (profilesError) {
+        setError("Could not load profiles.");
+        setLoading(false);
+        return;
+      }
 
       setProfiles(data || []);
       setLoading(false);
@@ -41,6 +61,22 @@ export default function ProfilePickerPage() {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">Loading profiles...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <p className="text-red-500">{error}</p>
+          <button
+            onClick={() => router.push("/login")}
+            className="text-green-600 underline"
+          >
+            Back to login
+          </button>
+        </div>
       </main>
     );
   }
