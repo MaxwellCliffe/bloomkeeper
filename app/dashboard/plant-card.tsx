@@ -1,3 +1,4 @@
+// v2 - careLogs prop
 "use client";
 
 import Link from "next/link";
@@ -19,6 +20,7 @@ type CareTask = {
 };
 
 type CareLog = {
+  plant_id: string;
   action: string;
   logged_at: string;
 };
@@ -30,7 +32,6 @@ type Plant = {
   location: string | null;
   photo_url: string | null;
   plant_care_tasks: CareTask[];
-  care_logs?: CareLog[];
 };
 
 function getUrgency(task: CareTask, logs: CareLog[]): 0 | 1 | 2 {
@@ -58,13 +59,18 @@ const URGENCY_COLORS: Record<number, string> = {
   2: "bg-red-100 text-red-700",
 };
 
-export default function PlantCard({ plant }: { plant: Plant }) {
-  console.log("care_logs for", plant.name, plant.care_logs);
+export default function PlantCard({
+  plant,
+  careLogs,
+}: {
+  plant: Plant;
+  careLogs: CareLog[];
+}) {
   const enabledTasks = plant.plant_care_tasks.filter((t) => t.is_enabled);
   const disabledTasks = plant.plant_care_tasks.filter((t) => !t.is_enabled);
 
   const maxUrgency = enabledTasks.reduce((max, task) => {
-    return Math.max(max, getUrgency(task, plant.care_logs ?? []));
+    return Math.max(max, getUrgency(task, careLogs));
   }, 0);
 
   return (
@@ -90,7 +96,7 @@ export default function PlantCard({ plant }: { plant: Plant }) {
 
         <div className="flex flex-wrap gap-2">
           {enabledTasks.map((task) => {
-            const urgency = getUrgency(task, plant.care_logs ?? []);
+            const urgency = getUrgency(task, careLogs);
             return (
               <span
                 key={task.id}
