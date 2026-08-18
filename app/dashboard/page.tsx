@@ -43,30 +43,6 @@ export default async function DashboardPage() {
     .eq("household_id", household.id)
     .order("created_at", { ascending: false });
 
-  const { data: plants } = await supabase
-    .from("plants")
-    .select(
-      `
-    id,
-    name,
-    species,
-    location,
-    photo_url,
-    plant_care_tasks (
-      id,
-      action,
-      interval_days,
-      is_enabled
-    ),
-    care_logs (
-      action,
-      logged_at
-    )
-  `,
-    )
-    .eq("household_id", household.id)
-    .order("created_at", { ascending: false });
-
   return (
     <main className="min-h-screen p-6">
       <div className="max-w-sm mx-auto space-y-6">
