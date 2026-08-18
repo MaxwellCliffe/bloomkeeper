@@ -30,7 +30,7 @@ type Plant = {
   location: string | null;
   photo_url: string | null;
   plant_care_tasks: CareTask[];
-  care_logs: CareLog[];
+  care_logs?: CareLog[];
 };
 
 function getUrgency(task: CareTask, logs: CareLog[]): 0 | 1 | 2 {
